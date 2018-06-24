@@ -89,10 +89,10 @@ conv = Activation('relu')(conv)
 
 skip = merge([conv, skip], mode='sum')
 
-conv = Conv2D(512, kernel_size=(3, 3), padding='same')(skip)
+conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(512, kernel_size=(3, 3), padding='same')(conv)
+conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
