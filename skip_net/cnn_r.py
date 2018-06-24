@@ -9,7 +9,7 @@ from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint, Callback
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers.convolutional import Conv2D
 from keras.optimizers import Adam, Adadelta, Adagrad, RMSprop, SGD
-from keras.layers.pooling import MaxPooling2D
+from keras.layers.pooling import MaxPooling2D, GlobalMaxPooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Input, concatenate, merge
 from keras.utils import to_categorical
@@ -47,72 +47,57 @@ datagen_no_aug = ImageDataGenerator(rescale=1./255)
 input_img = Input(shape=(224,224,3))
 
 # Create the model
-flow_1 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
-flow_1 = BatchNormalization()(flow_1)
-flow_1 = Activation('relu')(flow_1)
-flow_1 = MaxPooling2D(pool_size=(2,2))(flow_1)
-
-flow_2 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
-flow_2 = BatchNormalization()(flow_2)
-flow_2 = Activation('relu')(flow_2)
-flow_2 = Conv2D(32, kernel_size=(3, 3), padding='same')(flow_2)
-flow_2 = BatchNormalization()(flow_2)
-flow_2 = Activation('relu')(flow_2)
-flow_2 = MaxPooling2D(pool_size=(2,2))(flow_2)
-
-flow_3 = Conv2D(32, kernel_size=(1, 1), padding='same')(input_img)
-flow_3 = BatchNormalization()(flow_3)
-flow_3 = Activation('relu')(flow_3)
-flow_3 = Conv2D(32, kernel_size=(5, 5), padding='same')(flow_3)
-flow_3 = BatchNormalization()(flow_3)
-flow_3 = Activation('relu')(flow_3)
-flow_3 = MaxPooling2D(pool_size=(2,2))(flow_3)
-
-flow_4 = MaxPooling2D(pool_size=(3, 3), padding='same', strides=(1, 1))(input_img)
-flow_4 = Conv2D(32, kernel_size=(5, 5), padding='same')(flow_4)
-flow_4 = BatchNormalization()(flow_4)
-flow_4 = Activation('relu')(flow_4)
-flow_4 = MaxPooling2D(pool_size=(2,2))(flow_4)
-
-concat = concatenate([flow_1, flow_2, flow_3, flow_4], axis=3)
-
-z = merge([x, y], mode='sum')
-
-conv = Conv2D(64, kernel_size=(5,5), padding='valid')(concat)
+conv = Conv2D(64, kernel_size=(7, 7), padding='valid')(input_img)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(64, kernel_size=(5,5), padding='valid')(concat)
+conv_ = MaxPooling2D(pool_size=(2,2))(conv)
+
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(conv_)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = MaxPooling2D(pool_size=(2,2), padding='valid')(conv)
-conv = Dropout(0.25)(conv)
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(conv)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
 
-conv2 = Conv2D(128, kernel_size=(5,5), padding='valid')(conv)
-conv2 = BatchNormalization()(conv2)
-conv2 = Activation('relu')(conv2)
-conv2 = Conv2D(128, kernel_size=(5,5), padding='valid')(conv2)
-conv2 = BatchNormalization()(conv2)
-conv2 = Activation('relu')(conv2)
-conv2 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv2)
-conv2 = Dropout(0.25)(conv2)
+skip = merge([conv, conv_], mode='sum')
 
-conv3 = Conv2D(256, kernel_size=(3,3), padding='valid')(conv2)
-conv3 = BatchNormalization()(conv3)
-conv3 = Activation('relu')(conv3)
-conv3 = MaxPooling2D(pool_size=(2,2), padding='valid')(conv3)
-conv3 = Dropout(0.5)(conv3)
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(skip)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(conv)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
 
-flatten = Flatten()(conv3)
+skip = merge([conv, skip], mode='sum')
 
-# fully connected
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
 
-fc_1 = Dense(512, activation='selu', kernel_initializer='lecun_uniform')(flatten)
-fc_1 = Dropout(0.5)(fc_1)
+skip = merge([conv, skip], mode='sum')
 
-fc_2 = Dense(512, activation='selu', kernel_initializer='lecun_uniform')(fc_1)
-#fc_2 = Dropout(0.5)(fc_2)
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
 
-output = Dense(1, activation='sigmoid')(fc_2)
+skip = merge([conv, skip], mode='sum')
+
+conv = Conv2D(512, kernel_size=(3, 3), padding='same')(skip)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+conv = Conv2D(512, kernel_size=(3, 3), padding='same')(conv)
+conv = BatchNormalization()(conv)
+conv = Activation('relu')(conv)
+
+maxp = GlobalMaxPooling2D()(conv)
+
+output = Dense(1, activation='sigmoid')(maxp)
 
 model = Model(inputs=input_img, outputs=output)
 
