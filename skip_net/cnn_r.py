@@ -77,6 +77,7 @@ conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
+skip = Conv2D(128, kernel_size=(1, 1), padding='same')(skip)
 skip = merge([conv, skip], mode='sum')
 
 conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
