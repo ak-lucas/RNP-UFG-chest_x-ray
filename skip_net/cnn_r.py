@@ -61,32 +61,34 @@ conv = Activation('relu')(conv)
 
 skip = merge([conv, conv_], mode='sum')
 
-conv = Conv2D(64, kernel_size=(3, 3), padding='same')(skip)
+conv = Conv2D(64, kernel_size=(3, 3), padding='valid')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(64, kernel_size=(3, 3), padding='same')(conv)
+conv = Conv2D(64, kernel_size=(3, 3), padding='valid')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
+skip = Conv2D(64, kernel_size=(5, 5), padding='valid')(skip)
 skip = merge([conv, skip], mode='sum')
 
-conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
+conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
+conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
-skip = Conv2D(128, kernel_size=(1, 1), padding='same')(skip)
+skip = Conv2D(128, kernel_size=(5, 5), padding='valid')(skip)
 skip = merge([conv, skip], mode='sum')
 
-conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
+conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
+conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
+skip = Conv2D(128, kernel_size=(5, 5), padding='valid')(skip)
 skip = merge([conv, skip], mode='sum')
 
 conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(skip)
