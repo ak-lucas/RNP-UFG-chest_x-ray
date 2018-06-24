@@ -117,12 +117,11 @@ val_generator = datagen_no_aug.flow_from_directory(val_dir, target_size=(224,224
 																									seed=7)
 
 model.fit_generator(
-									train_generator,workers=1,
+									train_generator,workers=4,
 									class_weight={0:1, 1:1}, # balance
 									steps_per_epoch=152, # (partition size / batch size)+1
 									epochs=500,
 									shuffle=True,
                   max_queue_size=50,
-                  workers=4,
 									validation_data=val_generator,
 									callbacks=[EarlyStopping(patience=20), CSVLogger('training.log', separator=',', append=False), checkpoint])
