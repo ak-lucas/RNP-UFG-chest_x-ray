@@ -33,8 +33,8 @@ val_dir = sys.argv[2]
 
 # data generator com augmentation - para o treino
 datagen_aug = ImageDataGenerator(
-    width_shift_range=0.1,
-    height_shift_range=0.1,
+    #width_shift_range=0.1,
+    #height_shift_range=0.1,
     rescale=1./255,
     rotation_range=2,
     horizontal_flip=False)
@@ -49,26 +49,26 @@ input_img = Input(shape=(224,224,3))
 # Create the model
 model = Sequential()
 
-model.add(Conv2D(32, kernel_size=(3, 3), padding='valid', input_shape=(224, 224, 3)))
+model.add(Conv2D(32, kernel_size=(5, 5), padding='valid', input_shape=(224, 224, 3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
-model.add(Conv2D(32, kernel_size=(3, 3), padding='valid'))
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
-
-
-model.add(Conv2D(64, kernel_size=(3, 3), padding='valid'))
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-model.add(Conv2D(64, kernel_size=(3, 3), padding='valid'))
+model.add(Conv2D(32, kernel_size=(5, 5), padding='valid'))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 
-model.add(Conv2D(128, kernel_size=(2, 2), padding='valid'))
+
+model.add(Conv2D(64, kernel_size=(5, 5), padding='valid'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Conv2D(64, kernel_size=(5, 5), padding='valid'))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(128, kernel_size=(3, 3), padding='valid'))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -83,7 +83,7 @@ model.add(Dropout(0.25))
 model.add(Flatten())
 
 model.add(Dense(1024, activation='selu'))
-model.add(Dropout(0.25))
+model.add(Dropout(0.5))
 model.add(Dense(1024, activation='selu'))
 #model.add(Dropout(0.5))
 #model.add(Dense(128, activation='selu', kernel_initializer='lecun_uniform'))
@@ -119,7 +119,7 @@ val_generator = datagen_no_aug.flow_from_directory(val_dir, target_size=(224,224
 model.fit_generator(
 									train_generator,workers=1,
 									class_weight={0:1, 1:1}, # balance
-									steps_per_epoch=76, # (partition size / batch size)+1
+									steps_per_epoch=152, # (partition size / batch size)+1
 									epochs=500,
 									shuffle=True,
                   max_queue_size=20,
