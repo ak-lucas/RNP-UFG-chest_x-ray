@@ -9,7 +9,7 @@ from keras.callbacks import EarlyStopping, CSVLogger, ModelCheckpoint, Callback
 from keras.layers.core import Dense, Dropout, Flatten, Activation
 from keras.layers.convolutional import Conv2D
 from keras.optimizers import Adam, Adadelta, Adagrad, RMSprop, SGD
-from keras.layers.pooling import MaxPooling2D, GlobalMaxPooling2D
+from keras.layers.pooling import MaxPooling2D, GlobalMaxPooling2D, GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Input, concatenate, merge
 from keras.utils import to_categorical
@@ -33,8 +33,8 @@ val_dir = sys.argv[2]
 
 # data generator com augmentation - para o treino
 datagen_aug = ImageDataGenerator(
-    #width_shift_range=0.1,
-    #height_shift_range=0.1,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
     rescale=1./255,
     rotation_range=2,
     horizontal_flip=False)
@@ -60,36 +60,29 @@ conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
 skip = merge([conv, conv_], mode='sum')
+skip = Dropout(0.25)(skip)
 
-conv = Conv2D(64, kernel_size=(3, 3), padding='valid')(skip)
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(64, kernel_size=(3, 3), padding='valid')(conv)
+conv = Conv2D(64, kernel_size=(3, 3), padding='same')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
-skip = Conv2D(64, kernel_size=(5, 5), padding='valid')(skip)
+#skip = Conv2D(64, kernel_size=(5, 5), padding='valid')(skip)
 skip = merge([conv, skip], mode='sum')
+skip = Dropout(0.25)(skip)
 
-conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(skip)
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(skip)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
-conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(conv)
+conv = Conv2D(128, kernel_size=(3, 3), padding='same')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
 
-skip = Conv2D(128, kernel_size=(5, 5), padding='valid')(skip)
+skip = Conv2D(128, kernel_size=(1, 1), padding='same')(skip)
 skip = merge([conv, skip], mode='sum')
-
-conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(skip)
-conv = BatchNormalization()(conv)
-conv = Activation('relu')(conv)
-conv = Conv2D(128, kernel_size=(3, 3), padding='valid')(conv)
-conv = BatchNormalization()(conv)
-conv = Activation('relu')(conv)
-
-skip = Conv2D(128, kernel_size=(5, 5), padding='valid')(skip)
-skip = merge([conv, skip], mode='sum')
+skip = Dropout(0.25)(skip)
 
 conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(skip)
 conv = BatchNormalization()(conv)
@@ -97,6 +90,17 @@ conv = Activation('relu')(conv)
 conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(conv)
 conv = BatchNormalization()(conv)
 conv = Activation('relu')(conv)
+
+#skip = Conv2D(128, kernel_size=(5, 5), padding='valid')(skip)
+#skip = merge([conv, skip], mode='sum')
+#skip = Dropout(0.3)(skip)
+
+#conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(skip)
+#conv = BatchNormalization()(conv)
+#conv = Activation('relu')(conv)
+#conv = Conv2D(512, kernel_size=(3, 3), padding='valid')(conv)
+#conv = BatchNormalization()(conv)
+#conv = Activation('relu')(conv)
 
 maxp = GlobalMaxPooling2D()(conv)
 
@@ -107,7 +111,7 @@ model = Model(inputs=input_img, outputs=output)
 #opt = RMSprop(lr=0.001, decay=1e-9)
 #opt = Adagrad(lr=0.001, decay=1e-6)
 #opt = Adadelta(lr=0.075, decay=1e-6)
-opt = Adam(lr=0.0001, decay=1e-6)
+opt = Adam(lr=0.001, decay=1e-4)
 # Compile the model
 model.compile(loss='binary_crossentropy',
               optimizer=opt,
